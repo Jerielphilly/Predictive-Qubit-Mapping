@@ -1,3 +1,4 @@
+Steps to run:
 1. Activate the Environment
 For Windows:
 quantum_env\\Scripts\\activate
