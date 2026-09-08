@@ -1,113 +1,43 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
+df = pd.read_csv("results/benchmark_all_results.csv")
 
-df = pd.read_csv("comparison_results.csv")
-
-
-phase1_total = df["Phase 1"].sum()
-phase2_total = df["Phase 2"].sum()
-
-phase1_average = df["Phase 1"].mean()
-phase2_average = df["Phase 2"].mean()
-
-phase2_better = (df["Phase 2"] < df["Phase 1"]).sum()
-phase1_better = (df["Phase 1"] < df["Phase 2"]).sum()
-same_result = (df["Phase 1"] == df["Phase 2"]).sum()
-
-reduction = ((phase1_total - phase2_total) / phase1_total) * 100
-
+base_avg = df["Baseline"].mean()
+rf_avg = df["Random Forest"].mean()
+gnn_avg = df["GNN"].mean()
 
 print("========================================")
 print("          FINAL ANALYSIS")
 print("========================================")
-
-print(f"Phase 1 total SWAPs   : {phase1_total}")
-print(f"Phase 2 total SWAPs   : {phase2_total}")
-
-print(f"Phase 1 average SWAPs : {phase1_average:.2f}")
-print(f"Phase 2 average SWAPs : {phase2_average:.2f}")
-
-print(f"Phase 2 better        : {phase2_better}")
-print(f"Phase 1 better        : {phase1_better}")
-print(f"Same result           : {same_result}")
-
-print(f"SWAP reduction        : {reduction:.2f}%")
+print(f"Baseline avg SWAPs     : {base_avg:.2f}")
+print(f"Random Forest avg      : {rf_avg:.2f}")
+print(f"GNN avg                : {gnn_avg:.2f}")
 print("========================================")
 
-
-# Graph 1
+# Graph 1: Line plot of a single test
+df_subset = df[df["Test"] == 1]
 plt.figure(figsize=(12, 6))
-
-plt.plot(
-    df["Circuit"],
-    df["Phase 1"],
-    label="Phase 1"
-)
-
-plt.plot(
-    df["Circuit"],
-    df["Phase 2"],
-    label="Phase 2"
-)
-
+plt.plot(df_subset["Circuit"], df_subset["Baseline"], label="Baseline (Greedy)", alpha=0.5)
+plt.plot(df_subset["Circuit"], df_subset["Random Forest"], label="Random Forest", alpha=0.8)
+plt.plot(df_subset["Circuit"], df_subset["GNN"], label="Graph Neural Network", alpha=0.9, linewidth=2)
 plt.xlabel("Circuit Number")
 plt.ylabel("Number of SWAP Gates")
-plt.title("Phase 1 vs Phase 2 SWAP Count")
+plt.title("SWAP Count per Circuit (First 100 Circuits)")
 plt.legend()
-plt.grid(True)
+plt.grid(True, alpha=0.3)
+plt.savefig("results/graph1_benchmark_line.png", dpi=300, bbox_inches="tight")
+plt.close()
 
-plt.savefig(
-    "graph1_phase1_vs_phase2.png",
-    dpi=300,
-    bbox_inches="tight"
-)
-
-plt.show()
-
-
-# Graph 2
-plt.figure(figsize=(7, 5))
-
-plt.bar(
-    ["Phase 1", "Phase 2"],
-    [phase1_average, phase2_average]
-)
-
+# Graph 2: Bar chart
+plt.figure(figsize=(10, 6))
+bars = plt.bar(["Baseline", "Random Forest", "GNN"], 
+               [base_avg, rf_avg, gnn_avg], 
+               color=['#1f77b4', '#ff7f0e', '#d62728'])
 plt.ylabel("Average SWAP Gates")
-plt.title("Average SWAP Count Comparison")
-
-plt.savefig(
-    "graph2_average_swaps.png",
-    dpi=300,
-    bbox_inches="tight"
-)
-
-plt.show()
-
-
-# Graph 3
-plt.figure(figsize=(7, 5))
-
-plt.bar(
-    ["Phase 2 Better", "Phase 1 Better", "Same"],
-    [phase2_better, phase1_better, same_result]
-)
-
-plt.ylabel("Number of Circuits")
-plt.title("Circuit Performance Comparison")
-
-plt.savefig(
-    "graph3_circuit_performance.png",
-    dpi=300,
-    bbox_inches="tight"
-)
-
-plt.show()
-
-
-print()
-print("Graphs generated successfully!")
-print("graph1_phase1_vs_phase2.png")
-print("graph2_average_swaps.png")
-print("graph3_circuit_performance.png")
+plt.title("Average SWAPs Injected (Deep 20-40 Gate Circuits)")
+for bar in bars:
+    yval = bar.get_height()
+    plt.text(bar.get_x() + bar.get_width()/2, yval + 0.5, round(yval, 2), ha='center', va='bottom')
+plt.savefig("results/graph2_average_swaps.png", dpi=300, bbox_inches="tight")
+plt.close()

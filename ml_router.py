@@ -1,11 +1,14 @@
 import networkx as nx
 import joblib
+import os
+import pickle
 
 from qiskit import QuantumCircuit
 from qiskit.transpiler import CouplingMap
 
 
-model = joblib.load("routing_model.pkl")
+model_path = os.path.join(os.path.dirname(__file__), "models", "routing_model.pkl")
+model = joblib.load(model_path)
 
 
 FEATURES = [

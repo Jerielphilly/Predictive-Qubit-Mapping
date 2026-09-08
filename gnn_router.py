@@ -55,9 +55,11 @@ class GNNRouter(torch.nn.Module):
 
 model = GNNRouter()
 
+import os
+model_path = os.path.join(os.path.dirname(__file__), "models", "gnn_routing_model.pt")
 model.load_state_dict(
     torch.load(
-        "gnn_routing_model.pt",
+        model_path,
         map_location="cpu"
     )
 )

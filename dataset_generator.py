@@ -207,7 +207,7 @@ for circuit_number in range(NUM_CIRCUITS):
                 "candidate_swap_b":
                     swap_b,
 
-                "future_swap_cost":
+                "target_score":
                     total_cost
             })
 
@@ -275,17 +275,8 @@ for circuit_number in range(NUM_CIRCUITS):
             current_swap_count += 1
 
 
-df = pd.DataFrame(rows)
-
-
-df.to_csv(
-    "dataset.csv",
-    index=False
-)
-
-
-print()
-print("Dataset generation complete!")
-print("Circuits generated:", NUM_CIRCUITS)
-print("Training samples:", len(df))
-print("Saved as: dataset.csv")
+    df = pd.DataFrame(rows)
+    import os
+    data_path = os.path.join(os.path.dirname(__file__), "data", "dataset.csv")
+    df.to_csv(data_path, index=False)
+    print(f"Dataset generated! Saved to '{data_path}' with {len(df)} samples.")
