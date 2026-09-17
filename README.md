@@ -4,15 +4,17 @@
 ![PyTorch](https://img.shields.io/badge/PyTorch-%23EE4C2C.svg?style=for-the-badge&logo=PyTorch&logoColor=white)
 ![Qiskit](https://img.shields.io/badge/Qiskit-%236929C4.svg?style=for-the-badge&logo=Qiskit&logoColor=white)
 
-This repository contains the official implementation of **Predictive Qubit Mapping**, a novel quantum circuit compilation framework. It utilizes a **Graph Neural Network (GNN)** to predict and inject optimal SWAP gates, successfully minimizing decoherence overhead in Noisy Intermediate-Scale Quantum (NISQ) devices.
+This repository contains the code for a quantum circuit routing compiler we built. It uses a Graph Neural Network (GNN) to figure out the best places to insert SWAP gates so that quantum circuits can actually run on physical hardware. 
 
-Unlike traditional heuristic algorithms or tabular machine learning methods tied to fixed hardware arrays, this model explicitly learns topological message-passing rules over the physical coupling map, rendering it completely **hardware-agnostic**.
+The main problem with Noisy Intermediate-Scale Quantum (NISQ) devices is that adding too many SWAP gates causes decoherence. While traditional compilers usually rely on fixed search heuristics or machine learning models that just memorize one specific chip layout, we wanted to build something completely hardware-agnostic. Our GNN actually learns the topological rules of how qubits interact, meaning it can dynamically route circuits over any physical coupling map.
 
-## 🚀 Key Results
-In a massive 1,000-circuit stress test (20-40 deeply entangled gates per circuit) mapped onto a 5-qubit array:
-*   **Greedy Baseline Compiler:** 30,104 SWAPs injected
-*   **Proposed GNN Compiler:** 23,431 SWAPs injected
-*   **Net Result:** A **~22.1% reduction** in SWAP overhead, significantly reducing final circuit depth.
+## Key Results
+To prove that this works, we ran a massive stress test generating 1,000 highly entangled random quantum circuits (each packed with 20 to 40 logical gates) and routed them onto a 5-qubit array. 
+
+*   **Greedy Baseline Compiler:** 30,104 total SWAPs injected
+*   **Our GNN Compiler:** 23,431 total SWAPs injected
+
+Our model achieved a **~22.1% reduction** in SWAP overhead compared to the standard baseline. This directly translates to shorter physical circuits and fewer decoherence errors.
 
 <p align="center">
   <img src="results/graph2_average_swaps.png" width="45%" />
@@ -21,7 +23,7 @@ In a massive 1,000-circuit stress test (20-40 deeply entangled gates per circuit
 
 ---
 
-## 🛠️ Installation & Setup
+## Installation & Setup
 
 1. **Clone the repository:**
    ```bash
@@ -29,7 +31,7 @@ In a massive 1,000-circuit stress test (20-40 deeply entangled gates per circuit
    cd Predictive-Qubit-Mapping
    ```
 
-2. **Create and activate a virtual environment (Recommended):**
+2. **Set up a virtual environment (Recommended):**
    *Windows:*
    ```powershell
    python -m venv venv
@@ -41,59 +43,58 @@ In a massive 1,000-circuit stress test (20-40 deeply entangled gates per circuit
    source venv/bin/activate
    ```
 
-3. **Install dependencies:**
+3. **Install the required packages:**
    ```bash
    pip install -r requirements.txt
    ```
-   *(Note: Ensure you have PyTorch and PyTorch Geometric properly configured for your specific OS/CUDA version).*
+   *(Note: You'll want to make sure PyTorch and PyTorch Geometric are correctly configured for your specific OS and CUDA version).*
 
 ---
 
-## 💻 Usage
+## Usage
 
 ### 1. Interactive Streamlit Dashboard (Live Demo)
-We provide a rich, interactive web interface to visualize the routing process in real-time. The dashboard dynamically generates random quantum circuits and runs a side-by-side execution race between the Baseline Compiler and our GNN.
+We built a web dashboard to make it easy to visualize how the routing works in real-time. It dynamically generates random quantum circuits and runs a side-by-side compilation race between the Baseline method and our GNN.
 
 ```bash
 streamlit run app.py
 ```
-*   Navigate to `http://localhost:8501` in your browser.
-*   Explore the **Methodology**, run the **1000-Circuit Benchmark**, and watch the **Live Routing Demo** draw compiled circuits.
+Just open `http://localhost:8501` in your browser. From there you can read up on the methodology, run the 1000-circuit benchmark yourself, and watch the live routing demo physically draw the compiled Qiskit circuits on the screen.
 
 ### 2. Run the Benchmark Locally
-To reproduce our 1,000-circuit stress test and generate the performance graphs:
+If you just want to run the math headless and generate the performance graphs:
 
 ```bash
-# 1. Run the benchmark (saves to results/benchmark_all_results.csv)
+# Run the benchmark (saves to results/benchmark_all_results.csv)
 python compare.py
 
-# 2. Generate the visual graphs (saves PNGs to results/)
+# Generate the visual graphs (saves PNGs to the results folder)
 python generate_graphs.py
 ```
 
 ### 3. Retrain the GNN Model
-If you wish to experiment with different topological features or train the GNN from scratch:
+If you want to tweak the node features or train the model from scratch:
 
 ```bash
-# 1. Generate 5,000 random circuits and encode them into PyTorch Geometric graphs
+# Generate 5,000 random circuits and encode them into PyTorch Geometric graphs
 python gnn_dataset.py
 
-# 2. Train the 3-layer GCNConv model (Saves to models/gnn_routing_model.pt)
+# Train the 3-layer GCNConv model (Saves the weights to models/gnn_routing_model.pt)
 python train_gnn.py
 ```
 
 ---
 
-## 🧠 System Architecture
+## How it Works (System Architecture)
 
-The compilation framework is divided into three primary modules:
-1. **Per-Candidate Graph Construction:** The physical quantum chip and impending logical gates are structurally encoded into a PyTorch Geometric graph.
-2. **Feature Encoding & Lookahead:** Each node (qubit) is embedded with a 9-dimensional feature vector, integrating shortest-path distances and a forward-looking "gate-pressure" metric.
-3. **Topology-Independent Routing Inference:** A 3-layer GCNConv model processes the graph via message passing. Global mean pooling feeds into a regression head to predict the routing cost of potential SWAPs, dynamically selecting the absolute lowest-cost move.
+The compiler is broken down into three main steps:
+1. **Graph Construction:** We take the physical quantum chip layout and the upcoming logical gates and encode them together into a PyTorch Geometric graph.
+2. **Feature Encoding & Lookahead:** Every qubit (node) gets a 9-dimensional feature vector. This tracks things like shortest-path distances and a forward-looking "gate-pressure" score to see how heavily a qubit will be used in the future.
+3. **Routing Inference:** We pass this graph through a 3-layer GCNConv network. After global mean pooling, a regression head predicts exactly how much routing cost a potential SWAP will incur in the future. The system then dynamically picks the SWAP with the lowest predicted cost and moves on to the next gate.
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```text
 ├── data/                       # Datasets and generated graph data
