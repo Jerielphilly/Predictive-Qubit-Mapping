@@ -14,6 +14,11 @@ In a massive 1,000-circuit stress test (20-40 deeply entangled gates per circuit
 *   **Proposed GNN Compiler:** 23,431 SWAPs injected
 *   **Net Result:** A **~22.1% reduction** in SWAP overhead, significantly reducing final circuit depth.
 
+<p align="center">
+  <img src="results/graph2_average_swaps.png" width="45%" />
+  <img src="results/graph1_benchmark_line.png" width="45%" />
+</p>
+
 ---
 
 ## 🛠️ Installation & Setup
