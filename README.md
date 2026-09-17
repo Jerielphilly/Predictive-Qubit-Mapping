@@ -1,52 +1,107 @@
-# Invention Disclosure Format (IDF)-B
+# Predictive Qubit Mapping: Hardware-Agnostic Quantum Routing via Topological GNNs
 
-**1. Title of the invention:**
-Hardware-Agnostic Quantum Circuit Routing via Topological Graph Neural Networks (GNN)
+![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=Streamlit&logoColor=white)
+![PyTorch](https://img.shields.io/badge/PyTorch-%23EE4C2C.svg?style=for-the-badge&logo=PyTorch&logoColor=white)
+![Qiskit](https://img.shields.io/badge/Qiskit-%236929C4.svg?style=for-the-badge&logo=Qiskit&logoColor=white)
 
-**2. Field /Area of invention:**
-Quantum Computing, Quantum Circuit Compilation, Graph Neural Networks (GNN)
+This repository contains the official implementation of **Predictive Qubit Mapping**, a novel quantum circuit compilation framework. It utilizes a **Graph Neural Network (GNN)** to predict and inject optimal SWAP gates, successfully minimizing decoherence overhead in Noisy Intermediate-Scale Quantum (NISQ) devices.
 
-**3. Prior Patents and Publications from literature:**
-| Category | Title/Patent Number | Description | Publication Source | Year |
-|----------|--------------------|-------------|--------------------|------|
-| Quantum Routing | US 2021/0125134 A1 | Method for mapping quantum circuits using heuristic search and simulated annealing. | USPTO | 2021 |
-| Reinforcement Learning | US 2023/0091234 A1 | Reinforcement learning agent for specific hardware topology routing. | USPTO | 2023 |
-| SWAP Gate Minimization | US 2020/0342345 A1 | Distance-based SWAP insertion using tabular feature engineering for fixed hardware. | USPTO | 2020 |
+Unlike traditional heuristic algorithms or tabular machine learning methods tied to fixed hardware arrays, this model explicitly learns topological message-passing rules over the physical coupling map, rendering it completely **hardware-agnostic**.
 
-**4. Summary and background of the invention (Address the gap / Novelty)**
-**Summary:**
-This invention provides a Graph Neural Network (GNN)-based quantum routing compiler that dynamically maps virtual qubits to physical qubits by modeling the hardware layout and circuit as topological graphs. It learns universal spatial routing laws, allowing it to inject the absolute minimum number of SWAP gates required to execute deep quantum circuits across dynamically changing hardware topologies.
-**Background and Novelty:**
-Traditional quantum compilers rely on rigid heuristic algorithms or tabular machine learning methods that memorize specific hardware board layouts (e.g., a fixed 5-qubit array). If the physical quantum chip breaks or scales up, traditional compilers completely fail and require total retraining. This invention addresses this gap by using a GNN to learn universal message-passing topological rules rather than memorizing a fixed board. The novelty lies in its hardware-agnostic generalizability: it can seamlessly adapt to any arbitrary or degrading physical quantum chip layout instantly without retraining, dramatically reducing SWAP overhead and preserving quantum coherence.
+## 🚀 Key Results
+In a massive 1,000-circuit stress test (20-40 deeply entangled gates per circuit) mapped onto a 5-qubit array:
+*   **Greedy Baseline Compiler:** 30,104 SWAPs injected
+*   **Proposed GNN Compiler:** 23,431 SWAPs injected
+*   **Net Result:** A **~22.1% reduction** in SWAP overhead, significantly reducing final circuit depth.
 
-**5. Objective(s) of Invention**
-The primary objective of this invention is to minimize the SWAP gate overhead in quantum circuit compilation, which is critical for reducing decoherence errors in Noisy Intermediate-Scale Quantum (NISQ) devices. Furthermore, the invention aims to provide a robust, hardware-agnostic routing framework that can dynamically adapt to arbitrary and faulty hardware topologies without requiring the costly retraining processes associated with traditional Reinforcement Learning or Random Forest compilers.
+---
 
-**6. Working principle of the invent (in brief)**
-The system translates the physical quantum hardware (qubits and connections) and the upcoming logical gates into a singular graph representation. The GNN processes this graph via message passing, embedding spatial relationships, and outputs a prediction score for potential SWAP candidates. The system then dynamically injects the lowest-cost SWAP gate to route the qubits together.
+## 🛠️ Installation & Setup
 
-**7. Description of the invention in detail**
-**1. System Components:**
-* **Topological Input Interface:** A module that converts arbitrary quantum hardware topologies (Coupling Maps) into normalized Adjacency Matrices.
-* **GNN Processing Engine:** A multi-layer Graph Convolutional Network (GCNConv) that acts as the core predictive brain, equipped with global mean pooling to capture holistic board states.
-* **Lookahead Subsystem:** A module that parses the upcoming sequence of quantum gates to feed future spatial requirements into the GNN node features.
-**2. Operational Workflow:**
-* **Graph Construction:** The current qubit mapping and upcoming gates are encoded as Node and Edge features on the physical hardware graph.
-* **Message Passing:** The GNN engine processes the graph, allowing nodes to share spatial information about upcoming gate requirements.
-* **Dynamic Routing:** The engine calculates the predicted future cost of all legal SWAP candidates and executes the one that optimally shortens the path for upcoming gates.
-**3. Architecture Description:**
-The architecture relies on a 3-layer GCNConv structure built on PyTorch Geometric. Node features include binary flags for whether a physical qubit is involved in the current or upcoming logical gates. By using graph message passing, the system intrinsically understands distance and bottlenecks without requiring handcrafted tabular features. 
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/Jerielphilly/Predictive-Qubit-Mapping.git
+   cd Predictive-Qubit-Mapping
+   ```
 
-**8. Experimental validation results:**
-The invention was validated against a standard Greedy Baseline compiler across a rigorous stress test of 1,000 deep quantum circuits (20-40 gates). 
-* **Baseline Total SWAPs:** 29,926 (Avg: 29.93 per circuit)
-* **GNN Total SWAPs:** 23,301 (Avg: 23.30 per circuit)
-The GNN achieved a massive ~22% reduction in SWAP gates compared to the baseline, definitively proving its efficacy at topological routing optimization.
+2. **Create and activate a virtual environment (Recommended):**
+   *Windows:*
+   ```powershell
+   python -m venv venv
+   .\venv\Scripts\activate
+   ```
+   *macOS/Linux:*
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
 
-**9. What aspect(s) of the invention need(s) protection?**
-1. **Topological Modeling of Quantum States:** The specific method of translating physical quantum hardware and upcoming logical gates into a unified mathematical graph for neural network processing.
-2. **Hardware-Agnostic GNN Routing:** The application of Graph Convolutional Networks (GCN) to predict quantum routing costs, allowing the compiler to function across dynamic, changing, or degrading physical chip topologies without retraining.
-3. **Lookahead Node Feature Encoding:** The specific integration of future gate requirements directly into the node feature vectors of the physical hardware graph.
+3. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+   *(Note: Ensure you have PyTorch and PyTorch Geometric properly configured for your specific OS/CUDA version).*
 
-**10. Technology readiness level (TRL)**
-TRL 6: Technology demonstrated in a relevant environment. (The GNN has been fully implemented, trained, and successfully integrated into a live web-based compiler prototype demonstrating real-time SWAP reduction).
+---
+
+## 💻 Usage
+
+### 1. Interactive Streamlit Dashboard (Live Demo)
+We provide a rich, interactive web interface to visualize the routing process in real-time. The dashboard dynamically generates random quantum circuits and runs a side-by-side execution race between the Baseline Compiler and our GNN.
+
+```bash
+streamlit run app.py
+```
+*   Navigate to `http://localhost:8501` in your browser.
+*   Explore the **Methodology**, run the **1000-Circuit Benchmark**, and watch the **Live Routing Demo** draw compiled circuits.
+
+### 2. Run the Benchmark Locally
+To reproduce our 1,000-circuit stress test and generate the performance graphs:
+
+```bash
+# 1. Run the benchmark (saves to results/benchmark_all_results.csv)
+python compare.py
+
+# 2. Generate the visual graphs (saves PNGs to results/)
+python generate_graphs.py
+```
+
+### 3. Retrain the GNN Model
+If you wish to experiment with different topological features or train the GNN from scratch:
+
+```bash
+# 1. Generate 5,000 random circuits and encode them into PyTorch Geometric graphs
+python gnn_dataset.py
+
+# 2. Train the 3-layer GCNConv model (Saves to models/gnn_routing_model.pt)
+python train_gnn.py
+```
+
+---
+
+## 🧠 System Architecture
+
+The compilation framework is divided into three primary modules:
+1. **Per-Candidate Graph Construction:** The physical quantum chip and impending logical gates are structurally encoded into a PyTorch Geometric graph.
+2. **Feature Encoding & Lookahead:** Each node (qubit) is embedded with a 9-dimensional feature vector, integrating shortest-path distances and a forward-looking "gate-pressure" metric.
+3. **Topology-Independent Routing Inference:** A 3-layer GCNConv model processes the graph via message passing. Global mean pooling feeds into a regression head to predict the routing cost of potential SWAPs, dynamically selecting the absolute lowest-cost move.
+
+---
+
+## 📁 Repository Structure
+
+```text
+├── data/                       # Datasets and generated graph data
+├── models/
+│   └── gnn_routing_model.pt    # Pre-trained GNN model weights
+├── results/                    # CSV outputs and generated PNG graphs
+├── app.py                      # Streamlit dashboard application
+├── architecture_diagram.md     # Mermaid.js system block diagram
+├── compare.py                  # Benchmark script (GNN vs Greedy)
+├── generate_graphs.py          # Data visualization script
+├── gnn_dataset.py              # PyTorch Geometric dataset generator
+├── gnn_router.py               # Core GNN routing inference logic
+├── router.py                   # Baseline shortest-path heuristic router
+├── train_gnn.py                # Model training script
+└── requirements.txt            # Python dependencies
+```
