@@ -1,15 +1,15 @@
 # A Topological Graph Neural Network Framework for Hardware-Agnostic Quantum Circuit Routing on NISQ Architectures
 
-**Jeriel Philly**, **Nikhil [Surname]**, **[Author 3]**, **[Faculty Guide]**  
+**Jeriel Philly Koshy**, **Nikhil Samson Sureshkumar**, **Jennica Hanlynn Suhan**, **Muthunagai S U**  
 *School of Computer Science and Engineering, Vellore Institute of Technology, Vellore, India*  
-*{jeriel.philly2023, nikhil.2023}@vitstudent.ac.in, {faculty.guide}@vit.ac.in*  
+*{jeriel.phillykoshy2024, nikhil.samson2024, jennica.hanlynn2024}@vitstudent.ac.in, muthunagai.su@vit.ac.in*  
 
 ---
 
 ### Abstract
-In Noisy Intermediate-Scale Quantum (NISQ) computing, executing arbitrary multi-qubit circuits on hardware requires routing non-adjacent logical two-qubit operations onto constrained physical coupling topologies. Physical constraints necessitate the dynamic insertion of SWAP gates, which significantly expand circuit depth, introduce gate errors, and accelerate quantum decoherence. Existing compilers predominantly rely on greedy heuristic search (e.g., SABRE variants) that lack multi-step foresight, or tabular machine learning and reinforcement learning (RL) models that fail to generalize across varying chip topologies due to rigid spatial memorization. To address this, we propose a **Topological Graph Neural Network (GNN) Routing Framework** for hardware-agnostic qubit mapping. The proposed architecture models the physical coupling graph and pending gate operations via spatial message passing. Each physical qubit is represented using a 9-dimensional topological feature vector combining immediate gate operands, shortest-path distances, and forward-looking gate pressure across a bounded lookahead window. A 3-layer Graph Convolutional Network (GCN) with global mean pooling predicts residual routing costs for candidate SWAP operations to select paths of minimal overhead. We systematically benchmark the GNN framework against classical greedy heuristics, tabular ensemble learning (Random Forest), and model-free Deep RL (PPO). Evaluated across a stress test of 1,000 deeply entangled random circuits (20–40 gates), the proposed GNN router reduces cumulative SWAP insertion from 30,104 to 23,431—achieving a **22.1% reduction in SWAP overhead** over standard baseline routing while maintaining strict hardware agnosticism.
+In Noisy Intermediate-Scale Quantum (NISQ) computing, executing arbitrary multi-qubit circuits on hardware requires routing non-adjacent logical two-qubit operations onto constrained physical coupling topologies. Physical constraints necessitate the dynamic insertion of SWAP gates, which significantly expand circuit depth, introduce gate errors, and accelerate quantum decoherence. Existing compilers predominantly rely on greedy heuristic search (e.g., SABRE variants) that lack multi-step foresight, or tabular machine learning and reinforcement learning (RL) models that fail to generalize across varying chip topologies due to rigid spatial memorization. To address this, we propose a **Topological Graph Neural Network (GNN) Routing Framework** for hardware-agnostic qubit mapping. The proposed architecture models the physical coupling graph and pending gate operations via spatial message passing. Each physical qubit is represented using a 9-dimensional topological feature vector combining immediate gate operands, shortest-path distances, and forward-looking gate pressure across a bounded lookahead window. A 3-layer Graph Convolutional Network (GCN) with global mean pooling predicts residual routing costs for candidate SWAP operations to select paths of minimal overhead. We systematically benchmark the GNN framework against classical greedy heuristics, tabular ensemble learning (Random Forest), and model-free Deep RL (PPO). Evaluated across a stress test of 1,000 deeply entangled random circuits (20–40 gates), the proposed GNN router reduces cumulative SWAP insertion from 30,104 to 23,431—achieving a **22.17% reduction in SWAP overhead** over standard baseline routing while maintaining strict hardware agnosticism. Crucially, we demonstrate zero-shot cross-topology transferability without retraining across heterogeneous architectures: a 5-qubit T-junction (8.79% reduction), a 5-qubit cyclic ring (24.31% reduction), and an unseen 7-qubit IBM Falcon subgraph (13.22% reduction), establishing true empirical hardware agnosticism.
 
-**Index Terms**—Quantum Circuit Compilation, Qubit Mapping, Graph Neural Networks (GNN), NISQ Computing, SWAP Optimization, Reinforcement Learning, Lookahead Routing.
+**Index Terms**—Quantum Circuit Compilation, Qubit Mapping, Graph Neural Networks (GNN), NISQ Computing, SWAP Optimization, Zero-Shot Transfer Learning, Lookahead Routing.
 
 ---
 
@@ -29,7 +29,7 @@ The primary contributions of this paper are:
 1. **Hardware-Agnostic GNN Router:** A 3-layer GCN architecture with global mean pooling that predicts residual routing overhead directly over coupling graphs, decoupling compiler intelligence from fixed hardware dimensions.
 2. **Topological Feature Formulation:** A 9-dimensional node representation combining instantaneous gate operands, shortest-path graph geodesics, and a forward-looking "gate-pressure" metric across a bounded lookahead window.
 3. **Multi-Paradigm Comparative Study:** An empirical benchmark evaluating four paradigms—Greedy Heuristics, Tabular Supervised Learning (Random Forest), Deep RL (PPO), and the proposed GNN—across 1,000 deep circuits (20–40 gates).
-4. **Empirical Validation:** Demonstration of a **22.1% reduction** in SWAP overhead over standard compilers, accompanied by an open-source, real-time compilation dashboard.
+4. **Empirical Validation & Zero-Shot Transfer:** Demonstration of a **22.17% reduction** in SWAP overhead on deep circuits, alongside empirical proof of zero-shot transferability across unseen 5-qubit branching, cyclic, and 7-qubit IBM Falcon topologies, achieving up to a **24.31% reduction** without retraining.
 
 ---
 
@@ -238,13 +238,30 @@ Decision Latency        O(1)                O(Trees)             O(Forward Pass)
 ### E. RL Policy Collapse vs. GNN Message Passing
 A critical experimental finding is the failure of Deep RL for deep NISQ routing. Training a PPO agent across 50M steps revealed that as circuit depth scaled past 15 gates, sparse reward signals and a compounding action horizon caused the policy distribution to collapse into repetitive cyclic SWAPs. The agent achieved 31.45 average SWAPs, underperforming unguided greedy search. Conversely, supervised GNN message passing bounds inductive bias through graph convolution, ensuring reliable 22.1% optimization without reinforcement instability.
 
+### F. Zero-Shot Hardware Transferability Across Heterogeneous Topologies
+To empirically validate true hardware agnosticism, the GNN model trained exclusively on the 5-qubit linear path was deployed zero-shot (without retraining) across three unseen, heterogeneous topologies: a 5-qubit T-junction (branching), a 5-qubit cyclic ring (loop), and an unseen 7-qubit IBM Falcon subgraph (heavy tree). Each architecture was evaluated over 100 randomized deep quantum circuits containing 20 to 30 entangling gates (400 circuits total). 
+
+As detailed in TABLE III, the GNN consistently outperformed the baseline compiler across all architectures, achieving a 24.31% reduction on cyclic graphs, 8.79% on T-junctions, and a 13.22% reduction on the unseen 7-qubit processor. This confirms that spatial message passing learns topological relational invariants rather than static chip dimensions.
+
+```
+TABLE III: ZERO-SHOT TRANSFER LEARNING ACROSS UNSEEN HETEROGENEOUS TOPOLOGIES
+-------------------------------------------------------------------------------------------------------
+Topology / Architecture      Qubit Count  Coupling Structure          Baseline Avg  GNN Avg  Reduction (%)
+-------------------------------------------------------------------------------------------------------
+Linear Path (Canary, Trained)     5       Baseline Linear Path           30.10       23.43      22.17%
+T-Junction (Star/Fork, Zero-Shot) 5       Branching Junction             19.34       17.64       8.79%
+Cyclic Ring (Zero-Shot)           5       Cyclic Boundary Loop           12.30        9.31      24.31%
+IBM Falcon Subgraph (Zero-Shot)   7       Heterogeneous 7-Qubit Tree     34.11       29.60      13.22%
+-------------------------------------------------------------------------------------------------------
+```
+
 ---
 
 ## V. CONCLUSION AND FUTURE WORK
 
-We presented a Hardware-Agnostic Quantum Circuit Routing Framework using Topological Graph Neural Networks. By framing compiler lookahead as relational message passing over hardware graphs, our method eliminates the rigid spatial constraints of tabular ML and reinforcement learning. Benchmarking over 1,000 deep circuits (20–40 gates) verified a **22.17% reduction in SWAP overhead** over standard baseline routing, preserving limited NISQ coherence budgets. 
+We presented a Hardware-Agnostic Quantum Circuit Routing Framework using Topological Graph Neural Networks. By framing compiler lookahead as relational message passing over hardware graphs, our method eliminates the rigid spatial constraints of tabular ML and reinforcement learning. Benchmarking over 1,000 deep circuits (20–40 gates) verified a **22.17% reduction in SWAP overhead** on linear topologies, while zero-shot testing confirmed up to a **24.31% reduction across unseen cyclic, branching, and 7-qubit IBM Falcon architectures** without retraining.
 
-Future work includes incorporating real-time hardware noise metrics ($T_1$, $T_2$, readout infidelity) into Graph Attention Network (GAT) edge weights and validating zero-shot transfer learning across 27-qubit and 127-qubit IBM Quantum processors.
+Future work includes incorporating real-time hardware noise metrics ($T_1$, $T_2$, readout infidelity) into Graph Attention Network (GAT) edge weights and validating transfer learning across 27-qubit and 127-qubit IBM Quantum processors.
 
 ---
 
