@@ -1,0 +1,5 @@
+Topology,Qubits,Coupling Type,Baseline Avg SWAPs,GNN Avg SWAPs,SWAP Reduction (%)
+5-Qubit Line (Trained),5,Baseline Linear Path,34.82,25.38,+27.11%
+5-Qubit T-Junction (Zero-Shot),5,Branching Junction Topology,27.66,23.14,+16.34%
+5-Qubit Cyclic Ring (Zero-Shot),5,Cyclic Boundary Loop,17.32,13.12,+24.25%
+7-Qubit IBM Falcon Subgraph (Zero-Shot),7,Heterogeneous 7-Qubit Tree,49.06,41.40,+15.61%

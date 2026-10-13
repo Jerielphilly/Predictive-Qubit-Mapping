@@ -113,8 +113,9 @@ def create_features(
     p1 = layout[q1]
 
     features = []
+    num_nodes = graph.number_of_nodes()
 
-    for node in range(NUM_QUBITS):
+    for node in range(num_nodes):
 
         q0_flag = int(node == p0)
         q1_flag = int(node == p1)
@@ -171,6 +172,7 @@ def gnn_predictions(
     all_x = []
     all_batch = []
     all_edges = []
+    num_nodes = graph.number_of_nodes()
 
     for index, (a, b) in enumerate(
         swap_options
@@ -192,14 +194,14 @@ def gnn_predictions(
 
         all_batch.append(
             torch.full(
-                (NUM_QUBITS,),
+                (num_nodes,),
                 index,
                 dtype=torch.long
             )
         )
 
         all_edges.append(
-            edge_index + index * NUM_QUBITS
+            edge_index + index * num_nodes
         )
 
     x = torch.cat(
